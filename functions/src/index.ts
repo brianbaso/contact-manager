@@ -5,6 +5,7 @@ import * as bodyParser from "body-parser";
 
 // initalize firebase
 admin.initializeApp(functions.config().firebase);
+const db = admin.firestore();
 
 // initalize express server
 const app = express();
@@ -16,13 +17,28 @@ main.use(bodyParser.json());
 
 export const webAPI = functions.https.onRequest(main);
 
-app.get('/warm', (req, res) => {
-  res.send('Warming up');
-})
+// Create a contact
+app.post('/contacts', async (request, response) => {
+  try {
+    // Get the name and phone number from the request body
+    const { name, phoneNumber } = request.body;
+    const data = {
+      name,
+      phoneNumber
+    }
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
+    // Create a new collection in the firestore db if needed, otherwise add to
+    // the existing colleciton
+    const contactRef = await db.collection('contacts').add(data);
+    const contact = await contactRef.get();
+
+    // Show what the response will be
+    response.json({
+      id: contactRef.id,
+      data: contact.data()
+    });
+
+  } catch(e) {
+    response.status(500).send(error);
+  }
+});
