@@ -153,3 +153,40 @@ app.delete("/contacts/:id", async (request, response) => {
     response.status(500).send(e);
   }
 });
+
+// Update a single contact
+app.put("/contacts/:id/message", async (request, response) => {
+  try {
+    // get the contact id from the request param
+    const contactID = request.params.id;
+
+    // get the name/phone number from the request object body
+    const name = request.body.name;
+    const msg = request.body.msg;
+
+    // check if any fields are missing
+    if (!contactID) throw new Error("ID is required");
+    if (!name) throw new Error("Name is required");
+    if (!msg) throw new Error("No Message Sent");
+
+    // create the object to send to in the request to the server
+    const data = {
+      name,
+      msg
+    };
+
+    // reference the document in the nosql database so that you can update it
+    const contactRef = await db
+      .collection("contacts")
+      .doc(contactID)
+      .set(data, { merge: true });
+
+    // return the confirmation that the document changed
+    response.json({
+      id: contactID,
+      data
+    });
+  } catch (e) {
+    response.status(500).send(e);
+  }
+});
