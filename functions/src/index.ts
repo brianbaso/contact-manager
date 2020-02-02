@@ -26,7 +26,7 @@ app.post('/contacts', async (request, response) => {
       name,
       phoneNumber
     }
-    
+
     // Create a new collection in the firestore db if needed, otherwise add to
     // the existing colleciton
     const contactRef = await db.collection('contacts').add(data);
@@ -39,10 +39,10 @@ app.post('/contacts', async (request, response) => {
     });
 
   } catch(e) {
-    response.status(500).send(error);
+    response.status(500).send(e);
   }
-});      
- 
+});
+
 // Get a single contact
 app.get('/contacts/:id', async (request, response) => {
   try {
@@ -65,7 +65,7 @@ app.get('/contacts/:id', async (request, response) => {
     });
 
   } catch(e) {
-    response.status(500).send(error);
+    response.status(500).send(e);
   }
 });
 
@@ -78,7 +78,7 @@ app.get('/contacts', async (request, response) => {
     const contactsQuerySnapshot = await db.collection('contacts').get();
 
     // create an array for the contacts to go into
-    const contacts = [];
+    const contacts:any[] = [];
 
     // grab every contact in the collection
     contactsQuerySnapshot.forEach((doc) => {
@@ -93,7 +93,7 @@ app.get('/contacts', async (request, response) => {
     response.json(contacts);
 
   } catch(e) {
-    response.status(500).send(error);
+    response.status(500).send(e);
   }
 })
 
@@ -120,18 +120,16 @@ app.put('/contacts/:id', async (request, response) => {
     };
 
     // reference the document in the nosql database so that you can update it
-    const contactRef = await db.collection('contacts')
-      .doc(contactId)
-      .set(data, { merge: true });
+    await db.collection('contacts').doc(contactId).set(data, { merge: true });
 
     // return the confirmation that the document changed
     response.json({
-      id: contactID,
+      id: contactId,
       data
     });
 
   } catch(e) {
-    response.status(500).send(error);
+    response.status(500).send(e);
   }
 })
 
@@ -144,7 +142,7 @@ app.delete('/contacts/:id', async (request, response) => {
     if (!contactId) throw new Error('ID is required');
 
     // delete the document out of the contacts collection
-    await db.collection('contacts').doc(contactID).delete();
+    await db.collection('contacts').doc(contactId).delete();
 
     // delete confirmation response
     response.json({
@@ -152,6 +150,6 @@ app.delete('/contacts/:id', async (request, response) => {
     });
 
   } catch(e) {
-    response.status(500).send(error);
+    response.status(500).send(e);
   }
 });
