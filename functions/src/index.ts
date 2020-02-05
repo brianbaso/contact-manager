@@ -21,10 +21,11 @@ export const webAPI = functions.https.onRequest(main);
 app.post('/contacts', async (request, response) => {
   try {
     // Get the name and phone number from the request body
-    const { name, phoneNumber } = request.body;
+    const { name, phoneNumber, address } = request.body;
     const data = {
       name,
-      phoneNumber
+      phoneNumber,
+      address
     }
 
     // Create a new collection in the firestore db if needed, otherwise add to
@@ -107,16 +108,20 @@ app.put('/contacts/:id', async (request, response) => {
     // get the name/phone number from the request object body
     const name = request.body.name;
     const phoneNumber = request.body.phoneNumber;
+    const address = request.body.address;
 
     // check if any fields are missing
     if (!contactId) throw new Error('ID is required');
     if (!name) throw new Error('Name is required');
     if (!phoneNumber) throw new Error('Phone number is required');
+    if (!address) throw new Error('Address is required');
+
 
     // create the object to send to in the request to the server
     const data = {
       name,
-      phoneNumber
+      phoneNumber,
+      address
     };
 
     // reference the document in the nosql database so that you can update it
