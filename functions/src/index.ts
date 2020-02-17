@@ -2,7 +2,20 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as express from 'express';
 import * as bodyParser from "body-parser";
-const cors = require('cors')({origin: true});
+
+let cors_options =
+{
+  "origin": "*",
+  "methods": "*",
+  "preflightContinue": false,
+  "optionsSuccessStatus": 204
+}
+
+const cors = require('cors')(cors_options);
+const app = express();
+
+app.use(cors);
+app.options('*', cors);
 
 // New posts: /users/<user-id>/contacts/<contact map>
 
@@ -11,13 +24,11 @@ admin.initializeApp(functions.config().firebase);
 const db = admin.firestore();
 
 // initalize express server
-const app = express();
 const main = express();
 
 // configure the server
 main.use('/api/v1', app);
 main.use(bodyParser.json());
-main.use(cors);
 
 export const webAPI = functions.https.onRequest(main);
 
