@@ -2,7 +2,6 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as express from "express";
 import * as bodyParser from "body-parser";
-
 import algoliasearch from "algoliasearch";
 
 // initalize firebase
@@ -19,32 +18,39 @@ main.use(bodyParser.json());
 
 export const webAPI = functions.https.onRequest(main);
 
-// APP_ID = <ALGOLIA_APP_ID>
-// API_KEY = <ALGOLIA_API_KEY>
-// INDEX_NAME = "contacts"
+const ALGOLIA_APP_ID = "B1JJN0FQXD";
+const ALGOLIA_API_KEY = "43e46f3981e262a43fc2a0c433d79b21";
+const ALGOLIA_INDEX_NAME = "new_contacts";
 
-const client = algoliasearch(APP_ID, API_KEY);
+const client = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_API_KEY);
 const index = client.initIndex("contacts");
 
-exports.indexContact = functions.firestore
-  .document("contacts/{id}")
-  .onCreate((snap, context) => {
-    const data = snap.data();
-    const objectId = snap.id;
+export const sendCollectionToAlgolia = functions.https.onRequest((req, res) => {
+  // This array will contain all records to be indexed in Algolia.
+  // A record does not need to necessarily contain all properties of the Firestore document,
+  // only the relevant ones.
+  const algoliaRecords: any[] = [];
 
-    return index.saveObject({
-      objectId,
-      ...data
-    });
-  });
+  // Retrieve all documents from the COLLECTION collection.
+  admin
+    .firestore()
+    .collection("contacts")
+    .get()
+    .then(docs => {
+      docs.forEach(doc => {
+        const user = doc.data();
+        user.objectID = doc.id;
 
-exports.unindexContact = functions.firestore
-  .document("contacts/{id}")
-  .onDelete((snap, context) => {
-    const objectId = snap.id;
+        console.log(user);
+        algoliaRecords.push(user);
+      });
 
-    return index.deleteObject(objectId);
-  });
+      index.saveObjects(algoliaRecords, (err: any, content: any) => {
+        res.status(200).send(content);
+      });
+    })
+    .catch(e => console.log(e));
+});
 
 // Create a contact
 app.post("/contacts", async (request, response) => {
