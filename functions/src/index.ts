@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as express from 'express';
 import * as bodyParser from "body-parser";
+const cors = require('cors')({origin: true});
 
 // New posts: /users/<user-id>/contacts/<contact map>
 
@@ -16,6 +17,7 @@ const main = express();
 // configure the server
 main.use('/api/v1', app);
 main.use(bodyParser.json());
+main.use(cors);
 
 export const webAPI = functions.https.onRequest(main);
 
